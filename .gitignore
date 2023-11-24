@@ -19,3 +19,16 @@
 
 # Go workspace file
 go.work
+<<<<<<< HEAD
+=======
+*.swp
+*.log
+**/*.log
+**/*.log.*
+.idea/
+.DS_Store
+log
+.temp/*
+bin/
+pkg/
+>>>>>>> master
