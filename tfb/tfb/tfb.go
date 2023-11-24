@@ -20,7 +20,7 @@ func New() *Engine {
 }
 
 func (e *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
-	e.router.addRouter(method, pattern, handler)
+	e.router.addRoute(method, pattern, handler)
 }
 
 // GET define the method to add GET request
