@@ -79,7 +79,7 @@ func (n *node) search(parts []string, height int) *node {
 	// 遍历匹配的节点
 	for _, child := range children {
 		// 递归遍历匹配的节点，找到则返回
-		result := child.search(parts, height)
+		result := child.search(parts, height+1)
 		if result != nil {
 			return result
 		}
