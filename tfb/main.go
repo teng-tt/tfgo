@@ -1,11 +1,23 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"tfgo/tfb/tfb"
 	"time"
 )
+
+type student struct {
+	Name string
+	Age  int8
+}
+
+func FormatDate(t time.Time) string {
+	year, month, daya := t.Date()
+	return fmt.Sprintf("%d-%02d-%02d", year, month, daya)
+}
 
 func onlyForV2() tfb.HandlerFunc {
 	return func(c *tfb.Context) {
@@ -16,26 +28,44 @@ func onlyForV2() tfb.HandlerFunc {
 }
 
 func main() {
-	r := tfb.New()
-	r.Use(tfb.Logger()) // global middleware
+	r := tfb.Default()
+	r.SetFuncMap(template.FuncMap{
+		"FormatAsDate": FormatDate,
+	})
+	r.LoadHTMLGlob("templates/*")
+	r.Static("/assets", "./static")
+
+	stu1 := &student{
+		Name: "David",
+		Age:  22,
+	}
+	stu2 := &student{
+		Name: "Jack",
+		Age:  30,
+	}
+
 	r.GET("/", func(c *tfb.Context) {
-		c.HTML(http.StatusOK, "<h1>Hello Tfb</h1>")
+		c.HTML(http.StatusOK, "css.tmpl", nil)
+	})
+	r.GET("/student", func(c *tfb.Context) {
+		c.HTML(http.StatusOK, "arr.tmpl", tfb.H{
+			"title":  "tfb",
+			"stuArr": [2]*student{stu1, stu2},
+		})
 	})
 
-	v2 := r.Group("/v2")
-	{
-		v2.GET("/hello/:name", func(c *tfb.Context) {
-			// expect /hello/geektutu
-			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
+	r.GET("/date", func(c *tfb.Context) {
+		c.HTML(http.StatusOK, "custom_func.tmpl", tfb.H{
+			"title": "tfb",
+			"now":   time.Date(2022, 8, 12, 0, 0, 0, 0, time.UTC),
 		})
+	})
 
-		v2.POST("/login", func(c *tfb.Context) {
-			c.JSON(http.StatusOK, tfb.H{
-				"username": c.PostForm("username"),
-				"password": c.PostForm("password"),
-			})
-		})
-	}
+	// index out of range for testing Recovery()
+	r.GET("/panic", func(c *tfb.Context) {
+		names := []string{"tfbxxxas"}
+		c.String(http.StatusOK, names[100])
+	})
 
 	r.Run(":9999")
 
